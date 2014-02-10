@@ -138,6 +138,18 @@
     else if ([string findTheSame:@"Cloudy"]) {
         weatherStateName = @"Cloudy";
     }
+    else if ([string findTheSame:@"Rain"])
+    {
+        weatherStateName = @"Rain";
+    }
+    else if ([string findTheSame:@"Haze"])
+    {
+        weatherStateName = @"Haze";
+    }
+    else if ([string findTheSame:@"Overcast"])
+    {
+        weatherStateName = @"Overcast";
+    }
     return weatherStateName;
 }
 
