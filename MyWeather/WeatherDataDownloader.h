@@ -12,14 +12,14 @@
 
 @protocol WeatherDataDownloaderDelegate <NSObject>
 
--(void)didDownloader:(WeatherData *)data;
+-(void)didDownloader:(WeatherData *)data withtag:(NSInteger)tag;
 
 @end
-@interface WeatherDataDownloader : NSObject
+@interface WeatherDataDownloader : NSObject <NSXMLParserDelegate>
 
 @property (nonatomic,strong) CLGeocoder *geocoder;
 
--(void)requestData:(CLLocation *)location;
+-(void)requestData:(CLLocation *)location withtag:(NSInteger)tag;
 
 @property (nonatomic,weak) id<WeatherDataDownloaderDelegate> delegate;
 

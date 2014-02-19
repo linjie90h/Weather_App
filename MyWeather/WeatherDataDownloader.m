@@ -85,11 +85,14 @@
     return data;
 }
 
--(void) requestData:(CLLocation *)location
+-(void) requestData:(CLLocation *)location withtag:(NSInteger)tag
 {
     NSString *baseUrl = @"http://api.wunderground.com/api/";
     NSString *latlngString = [NSString stringWithFormat:@"%3f,%3f",location.coordinate.latitude,location.coordinate.longitude];
     NSString *allUrl = [NSString stringWithFormat:@"%@%@/forecast/conditions/q/%@.json",baseUrl,kAPI_KEY,latlngString];
+    NSURL *url = [NSURL URLWithString:allUrl];
+    
+    //JSON请求方式······················································
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager GET:allUrl parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         WeatherData *data  = [[WeatherData alloc] init];
@@ -98,26 +101,9 @@
         [_geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error) {
             
                 data.placemark = [placemarks lastObject];
+       
             
-            
-            
-            
-//            NSLog(@"name:%@\n country:%@\n postalCode:%@\n ISOcountryCode:%@\n ocean:%@\n inlandWater:%@\n locality:%@\n subLocality:%@\n administrativeArea:%@\n subAdministrativeArea:%@\n thoroughfare:%@\n subThoroughfare:%@\n",
-//                data.placemark.name,
-//                data.placemark.country,
-//                data.placemark.postalCode,
-//                data.placemark.ISOcountryCode,
-//                data.placemark.ocean,
-//                  data.placemark.inlandWater,
-//                data.placemark.administrativeArea,
-//                data.placemark.subAdministrativeArea,
-//                data.placemark.locality,
-//                data.placemark.subLocality,
-//                data.placemark.thoroughfare,
-//                data.placemark.subThoroughfare);
-          
-            
-            [self.delegate didDownloader:data];
+            [self.delegate didDownloader:data withtag:tag];
         
         }];
         
@@ -126,6 +112,24 @@
          failure:^(AFHTTPRequestOperation *operation, NSError *error) {
              NSLog(@"ERROR:%@",error);
          }];
+    
+    
+    //XML请求方式························································
+//    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+//    AFHTTPRequestOperation *op = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+//    op.responseSerializer = [AFXMLParserResponseSerializer serializer];
+//    [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+//        NSLog(@"JSON: %@", responseObject);
+//        NSXMLParser *xmlParser = responseObject;
+//        xmlParser.delegate = self;
+//        [xmlParser parse];
+//
+//    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+//        NSLog(@"Error: %@", error);
+//    }];
+//    [[NSOperationQueue mainQueue] addOperation:op];
+    
+    
     
 }
 
