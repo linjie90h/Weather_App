@@ -88,18 +88,28 @@
         cell.backgroundColor = [UIColor clearColor];
         cell.textLabel.textColor = [UIColor whiteColor];
     }
-        CLPlacemark *placemark = [self.searchData objectAtIndex:indexPath.row];
-        NSString *city = placemark.locality;
-        NSString *country = placemark.country;
-        NSString *cellText = [NSString stringWithFormat:@"%@, %@", city, country];
-        if([[country lowercaseString] isEqualToString:@"united states"]) {
-            NSString *state = placemark.administrativeArea;
-            cellText = [NSString stringWithFormat:@"%@, %@", city, state];
-        }
-        cell.textLabel.text = cellText;
+
     }
+    CLPlacemark *placemark = [self.searchData objectAtIndex:indexPath.row];
+    NSString *city = placemark.locality;
+    NSString *country = placemark.country;
+    NSString *cellText = [NSString stringWithFormat:@"%@, %@", city, country];
+    if([[country lowercaseString] isEqualToString:@"united states"]) {
+        NSString *state = placemark.administrativeArea;
+        cellText = [NSString stringWithFormat:@"%@, %@", city, state];
+    }
+    cell.textLabel.text = cellText;
     return cell;
 }
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView cellForRowAtIndexPath:indexPath].selected = NO;
+    CLPlacemark *placemark = [self.searchData objectAtIndex:indexPath.row];
+    [self.delegate didAddLocationView:placemark];
+    [self.delegate dismissAddLocationViewController];
+}
+
 
 #pragma mark
 - (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString;
@@ -107,13 +117,12 @@
 {
     [geocoder geocodeAddressString:searchString completionHandler:^(NSArray *placemarks, NSError *error) {
         self.searchData = [[NSMutableArray alloc] initWithCapacity:1];
-//        CLPlacemark * placeMark = [placemarks objectAtIndex:0];
         for(CLPlacemark *placemark in placemarks) {
             if(placemark.locality) {
                 [self.searchData addObject:placemark];
             }
         }
-//        [self.searchData addObject:placeMark];
+        
         [controller.searchResultsTableView reloadData];
     }];
     return NO;

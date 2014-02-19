@@ -11,6 +11,7 @@
 @protocol AddLocationViewControllerDelegate <NSObject>
 
 - (void)dismissAddLocationViewController;
+-(void)didAddLocationView:(CLPlacemark *)placemark;
 
 @end
 @interface AddLocationViewController : UIViewController<UISearchBarDelegate,UISearchDisplayDelegate,UITableViewDataSource,UITableViewDelegate>

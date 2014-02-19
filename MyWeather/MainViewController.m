@@ -68,7 +68,8 @@
 {
     _weatherView = [[WeatherView alloc] initWithFrame:[UIScreen mainScreen].bounds];
     _weatherView.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"gradient0.png"]];
-    _weatherScrollView.delegate = self;
+//    _weatherScrollView.delegate = self;
+    _weatherView.tag = 1;
     [self.weatherScrollView addSubview:self.weatherView];
     self.pageControl.numberOfPages += 1;
 }
@@ -141,7 +142,7 @@
     WeatherDataDownloader *weatherDownloader = [[WeatherDataDownloader alloc] init];
     weatherDownloader.delegate = self;
     if (!self.weatherView.hasData) {
-        [weatherDownloader requestData:currLocation];
+        [weatherDownloader requestData:currLocation withtag:1];
     }
     
 }
@@ -154,17 +155,66 @@
     
 }
 #pragma mark ---WeatherDataDownloaderDelegate
--(void)didDownloader:(WeatherData *) data
+-(void)didDownloader:(WeatherData *) data withtag:(NSInteger)tag
 {
-   [self loadData:data];
+    
+    for (WeatherView *weatherView in self.weatherScrollView.subviews) {
+        if (weatherView.tag == tag) {
+            [self loadData:data withView:weatherView];
+        }
+    }
+   
 }
 
+#pragma mark UIScrollViewDelegate Methods
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+//    self->_isScrolling = NO;
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+//    self->_isScrolling = NO;
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+//    self->_isScrolling = YES;
+    
+    /// Update the current page for the page control
+    float fractionalPage = _weatherScrollView.contentOffset.x / _weatherScrollView.frame.size.width;
+    _pageControl.currentPage = lround(fractionalPage);
+}
 
 #pragma mark --SetViewControllerDelegate
 - (void)dismissSettingsViewController
 {
     [self showBlurredOverlayView:NO];
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+#pragma  mark --AddLocationViewControlerDelegate
+- (void) didAddLocationView:(CLPlacemark *)placemark
+{
+    WeatherView *locationWeatherView = [[WeatherView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    
+    int value = (arc4random()%9)+1 ;
+    NSString *gradientImageName = [NSString stringWithFormat:@"gradient%d.png",value];
+    locationWeatherView.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:gradientImageName]];
+    self.pageControl.numberOfPages += 1;
+    locationWeatherView.tag = self.pageControl.numberOfPages+10;
+    [self.weatherScrollView addSubview:locationWeatherView];
+    
+    
+    
+    WeatherDataDownloader *weatherDownloader = [[WeatherDataDownloader alloc] init];
+    weatherDownloader.delegate = self;
+    if (!locationWeatherView.hasData) {
+        [weatherDownloader requestData:placemark.location withtag:locationWeatherView.tag];
+    }
+
+    
 }
 
 - (void)dismissAddLocationViewController
@@ -200,43 +250,51 @@
     // Dispose of any resources that can be recreated.
 }
 
--(void)loadData:(WeatherData *)data
+-(void)loadData:(WeatherData *)data withView:(WeatherView*)weatherView
 {
-    self.weatherView.hasData = YES;
+ 
+    weatherView.hasData = YES;
     NSString *weatherStateName = [NSString stringWithString:data.currentWeather.weatherState];
     NSString *highAndlowweather = [NSString stringWithFormat:@"H:%@ L:%@",data.currentWeather.highWeather, data.currentWeather.lowWeather];
     //天气图片
-    self.weatherView.weatherState.image = [UIImage imageNamed:weatherStateName];
+    weatherView.weatherState.image = [UIImage imageNamed:weatherStateName];
     //当前天气
-    self.weatherView.currentWeather.text = data.currentWeather.currentWeather;
+    weatherView.currentWeather.text = data.currentWeather.currentWeather;
     //当前天气状态
-    self.weatherView.currentWeatherState.text = data.currentWeather.weatherState;
+    weatherView.currentWeatherState.text = data.currentWeather.weatherState;
     //当前最高气温
-    self.weatherView.highAndlowWeather.text = highAndlowweather;
+    weatherView.highAndlowWeather.text = highAndlowweather;
     
     NSString *country = data.placemark.country;
     NSString *state = data.placemark.locality;
     NSString *subLocality = data.placemark.subLocality;
-    self.weatherView.subLocality.text = subLocality;
+    weatherView.subLocality.text = subLocality;
     NSString *countryAndState = [NSString stringWithFormat:@"%@,%@", country,state];
-    self.weatherView.countryAndstate.text = countryAndState;
+    weatherView.countryAndstate.text = countryAndState;
     
     WeatherForecast *forecastOneDay =[data.futuureWeather objectAtIndex:0];
-    self.weatherView.dateOfWeakOne.text = forecastOneDay.dayOfTheWeek;
+   weatherView.dateOfWeakOne.text = forecastOneDay.dayOfTheWeek;
     
     WeatherForecast *forecastTwoDay =[data.futuureWeather objectAtIndex:1];
-    self.weatherView.dateOfWeakTwo.text = forecastTwoDay.dayOfTheWeek;
+    weatherView.dateOfWeakTwo.text = forecastTwoDay.dayOfTheWeek;
     
     WeatherForecast *forecastThreeDay =[data.futuureWeather objectAtIndex:2];
-    self.weatherView.dateOfWeakThree.text = forecastThreeDay.dayOfTheWeek;
+    weatherView.dateOfWeakThree.text = forecastThreeDay.dayOfTheWeek;
     
     
     NSString *forecastWeatherSateName = [NSString stringWithString:forecastOneDay.weatherState];
-    [self.weatherView.weatherStateButtonOne setBackgroundImage:[UIImage imageNamed:forecastWeatherSateName] forState:UIControlStateNormal];
+    [weatherView.weatherStateButtonOne setBackgroundImage:[UIImage imageNamed:forecastWeatherSateName] forState:UIControlStateNormal];
     
     //随机展示背景图片
     int value = (arc4random()%9)+1 ;
     NSString *gradientImageName = [NSString stringWithFormat:@"gradient%d.png",value];
-    self.weatherView.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:gradientImageName]];
+    weatherView.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:gradientImageName]];
 }
+
+
+- (BOOL)shouldAutorotate
+{
+    return NO;
+}
+
 @end
