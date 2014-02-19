@@ -10,4 +10,5 @@
 
 @interface WeatherScrollView : UIScrollView
 
+- (void)addSubview:(UIView *)weatherView;
 @end
